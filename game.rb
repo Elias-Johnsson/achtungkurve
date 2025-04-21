@@ -1,10 +1,12 @@
+
 require 'ruby2D'
 set title: "Curv crash"
 
 set width: 1500
 set height: 600
 
-$list_of_players = [1,1,1]
+$list_of_players = [1,1]
+@first_loop = true
 
 class StartScreen
   def initialize()
@@ -18,6 +20,7 @@ end
 
 class GameScreen
   def initialize()
+    @game_screen = Rectangle.new(x:10,y:10, width:1300, height:575,color: '#202020' ,z:1)
     i = 0
     while i < $list_of_players.length
       $list_of_players[i] = Player.new()
@@ -26,6 +29,15 @@ class GameScreen
   end
   def rotate_player(direction,player_index)
     $list_of_players[player_index].rotate(direction)
+  end
+  def check_border_collision()
+    i = 0 
+    while i < $list_of_players.length
+      if $list_of_players[i].out_of_bounds?(@game_screen,i) 
+        $list_of_players[i].kill_player(i)
+      end
+      i += 1
+    end
   end
   def move_players_forward()
     i = 0
@@ -40,27 +52,36 @@ end
 
 class Player
   def initialize()
-    @x = rand(400..1100)
+    @x = rand(200..1000)
     @y = rand(200..400)
     @x_speed = 0
     @y_speed = 0
-    @players = []
+    @squares = []
     @color = ['red','blue','green']
-    @rotate = 360
+    @rotate = rand(0..360)
+  
   end
   def draw()
     i = 0
     while i < $list_of_players.length
-      @players[i] = Square.new(x:@x, y:@y, size:3,color: @color[i])
+      @squares[i] = Square.new(x:@x, y:@y, size:3,color: @color[i], z:2)
+      #Line.new(x1: @x, y1: @y,x2: (@x + @x_speed), y2: (@y + @y_speed),width: 5,color: 'lime')
       i += 1
     end
+    def kill_player(player_index)
+      $list_of_players.delete_at(player_index)
+      puts "benis #{player_index}"
+    end
+  end
+  def out_of_bounds?(border,player_index)
+    return @squares[player_index].x <= border.x1 || @squares[player_index].x >= border.x2 || @squares[player_index].y <= border.y2 || @squares[player_index].y >= border.y4
   end
   def rotate(direction)
     case direction
     when :left
-      @rotate -= 1
+      @rotate -= 3
     when :right
-      @rotate += 1
+      @rotate += 3
     end
   end
   def direct()
@@ -77,23 +98,49 @@ end
 
 on :key_held do |action|
   if action.key == 'a'
-    @currentScreen.rotate_player(:left,0)
+    if $list_of_players[0] == nil
+      next
+    else
+      @currentScreen.rotate_player(:left,0)
+    end
   elsif action.key == 's'
-    @currentScreen.rotate_player(:right,0)
+    if $list_of_players[0] == nil
+      next
+    else
+      @currentScreen.rotate_player(:right,0)
+    end
   end
   if action.key == 'g'
-    @currentScreen.rotate_player(:left,1)
+    if $list_of_players[1] == nil
+      next
+    else
+      @currentScreen.rotate_player(:left,1)
+    end
   elsif action.key == 'h'
-    @currentScreen.rotate_player(:right,1)
+    if $list_of_players[1] == nil
+      next
+    else
+      @currentScreen.rotate_player(:right,1)
+    end
   end
   if action.key == 'k'
-    @currentScreen.rotate_player(:left,2)
+    if $list_of_players[2] == nil
+      next
+    else
+      @currentScreen.rotate_player(:left,2)
+    end
   elsif action.key == 'l'
-    @currentScreen.rotate_player(:right,2)
+    if $list_of_players[2] == nil
+      next
+    else
+      @currentScreen.rotate_player(:right,2)
+    end
   end
 end
+
 update do
   #startscreen
   @currentScreen.move_players_forward()
+  @currentScreen.check_border_collision()
 end
 show
