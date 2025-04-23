@@ -5,7 +5,14 @@ set title: "Curv crash"
 set width: 1500
 set height: 600
 
-$list_of_players = [1,1]
+$list_of_players = [1,2,3,4]
+$player_postitons = [[],[],[],[]]
+@player1_score = 0
+@player2_score = 0
+@player3_score = 0
+@player4_score = 0
+$player_scores = [@player1_score, @player2_score, @player3_score, @player4_score]
+$color = ['red', 'blue', 'green', 'yellow']
 @first_loop = true
 
 class StartScreen
@@ -20,21 +27,73 @@ end
 
 class GameScreen
   def initialize()
+    @first_loop = true
     @game_screen = Rectangle.new(x:10,y:10, width:1300, height:575,color: '#202020' ,z:1)
+    @score_board = Rectangle.new(x:1350, y:10, width:100, height:400, color: 'black', z:1)
     i = 0
     while i < $list_of_players.length
-      $list_of_players[i] = Player.new()
+      Text.new($player_scores[i], x:1400, y:(i*30),size:20, color: $color[i], z:2)
+      $list_of_players[i] = Player.new(i)
       i += 1
     end
+  end
+  def reset()
+    $player_postitons = [[],[],[],[]]
+    @first_loop = true
+    @game_screen = Rectangle.new(x:10,y:10, width:1300, height:575,color: '#202020' ,z:1)
+    @score_board = Rectangle.new(x:1350, y:10, width:100, height:400, color: 'black', z:1)
+    i = 0
+    while i < $list_of_players.length
+      Text.new($player_scores[i], x:1400, y:(i*30),size:20, color: $color[i], z:2)
+      $list_of_players[i] = Player.new(i)
+      i += 1
+    end
+  end
+  def check_player_collision()
+    i = 0 
+    while i < $list_of_players.length
+      if $list_of_players[i].player_collision(i) || $list_of_players[i].self_collision(i)
+        $list_of_players[i].kill_player()
+      end
+      i += 1
+    end
+  end
+  def check_round_winner()
+    i = 0
+    @num_of_alive = 0
+    while i < $player_scores.length
+      if $list_of_players[i].is_alive?()
+        @winner_index = i
+        @num_of_alive += 1
+      end
+      i += 1
+    end
+    if @num_of_alive == 1
+      sleep(1)
+      $player_scores[@winner_index] += 1
+      return true
+    end
+    return false
+  end
+  def check_winner()
+    i = 0
+    while i < $player_scores.length
+      if $player_scores[i] == 3
+        puts "Player #{i+1} wins"
+        return true
+      end
+      i += 1
+    end
+    return false
   end
   def rotate_player(direction,player_index)
     $list_of_players[player_index].rotate(direction)
   end
   def check_border_collision()
-    i = 0 
+    i = 0
     while i < $list_of_players.length
       if $list_of_players[i].out_of_bounds?(@game_screen,i) 
-        $list_of_players[i].kill_player(i)
+        $list_of_players[i].kill_player()
       end
       i += 1
     end
@@ -42,39 +101,52 @@ class GameScreen
   def move_players_forward()
     i = 0
     while i < $list_of_players.length
-      $list_of_players[i].draw()
-      $list_of_players[i].direct()
-      $list_of_players[i].move_forward()
+      if $list_of_players[i].is_alive?()
+        $list_of_players[i].direct()
+        $list_of_players[i].move_forward()
+        $list_of_players[i].draw()
+        $player_postitons[i] << ($list_of_players[i].g_pos(i))
+      end
       i += 1
     end
   end
 end
 
 class Player
-  def initialize()
+  def initialize(index)
     @x = rand(200..1000)
     @y = rand(200..400)
-    @x_speed = 0
-    @y_speed = 0
+    @color = $color[index]
+    @alive = true
+    @x_speed = 1
+    @y_speed = 1
     @squares = []
-    @color = ['red','blue','green']
+    @player_position = []
     @rotate = rand(0..360)
   
   end
   def draw()
     i = 0
     while i < $list_of_players.length
-      @squares[i] = Square.new(x:@x, y:@y, size:3,color: @color[i], z:2)
-      #Line.new(x1: @x, y1: @y,x2: (@x + @x_speed), y2: (@y + @y_speed),width: 5,color: 'lime')
+      @squares[i] = Square.new(x:@x, y:@y, size:3,color:@color, z:2)
       i += 1
     end
-    def kill_player(player_index)
-      $list_of_players.delete_at(player_index)
-      puts "benis #{player_index}"
+  end
+  def kill_player()
+    @alive = false
+  end
+  def is_alive?()
+    if @alive
+      return true
+    else false
     end
   end
   def out_of_bounds?(border,player_index)
-    return @squares[player_index].x <= border.x1 || @squares[player_index].x >= border.x2 || @squares[player_index].y <= border.y2 || @squares[player_index].y >= border.y4
+    return @squares[player_index].x <= border.x || @squares[player_index].x >= (border.x + border.width) || @squares[player_index].y <= border.y || @squares[player_index].y >= (border.y + border.height)
+  end
+  def g_pos(i)
+    @player_position = [@squares[i].x1, @squares[i].y1, @squares[i].x2, @squares[i].y2, @squares[i].x3, @squares[i].y3,@squares[i].x4, @squares[i].y4]
+    return @player_position
   end
   def rotate(direction)
     case direction
@@ -84,7 +156,47 @@ class Player
       @rotate += 3
     end
   end
-  def direct()
+  def player_collision(i)
+    j = 0
+    while j < $player_postitons.length
+      if j == i
+        j += 1
+        next
+      end
+      k = 0
+      while k < $player_postitons[j].length
+        pos = $player_postitons[j][k]
+        if pos && pos.length == 8
+          if @squares[i].contains?($player_postitons[j][k][0], $player_postitons[j][k][1]) || 
+            @squares[i].contains?($player_postitons[j][k][2], $player_postitons[j][k][3]) || 
+            @squares[i].contains?($player_postitons[j][k][4], $player_postitons[j][k][5]) || 
+            @squares[i].contains?($player_postitons[j][k][6], $player_postitons[j][k][7])
+              return true
+          end
+        end
+        k += 1
+      end
+      j += 1
+    end
+  end
+  def self_collision(i)
+    j = 0
+    while j < $player_postitons[i].length - 5
+      if j == 0
+        j += 1
+        next
+      end
+      if @squares[i].contains?($player_postitons[i][j][0], $player_postitons[i][j][1]) || 
+        @squares[i].contains?($player_postitons[i][j][2], $player_postitons[i][j][3]) || 
+        @squares[i].contains?($player_postitons[i][j][4], $player_postitons[i][j][5]) || 
+        @squares[i].contains?($player_postitons[i][j][6], $player_postitons[i][j][7])
+          return true
+      end
+      j += 1
+    end
+    return false
+  end
+  def direct() 
     @x_speed = Math.sin(@rotate * Math::PI/ 180)
     @y_speed = Math.cos(@rotate *  Math::PI/ 180)
   end
@@ -97,50 +209,72 @@ end
 #startscreen = StartScreen.new()
 
 on :key_held do |action|
-  if action.key == 'a'
+  if action.key == 's'
     if $list_of_players[0] == nil
       next
     else
       @currentScreen.rotate_player(:left,0)
     end
-  elsif action.key == 's'
+  elsif action.key == 'a'
     if $list_of_players[0] == nil
       next
     else
       @currentScreen.rotate_player(:right,0)
     end
   end
-  if action.key == 'g'
+  if action.key == 'h'
     if $list_of_players[1] == nil
       next
     else
       @currentScreen.rotate_player(:left,1)
     end
-  elsif action.key == 'h'
+  elsif action.key == 'g'
     if $list_of_players[1] == nil
       next
     else
       @currentScreen.rotate_player(:right,1)
     end
   end
-  if action.key == 'k'
+  if action.key == 'l'
     if $list_of_players[2] == nil
       next
     else
       @currentScreen.rotate_player(:left,2)
     end
-  elsif action.key == 'l'
+  elsif action.key == 'k'
     if $list_of_players[2] == nil
       next
     else
       @currentScreen.rotate_player(:right,2)
     end
   end
+  if action.key == 'm'
+    if $list_of_players[3] == nil
+      next
+    else
+      @currentScreen.rotate_player(:left,3)
+    end
+  elsif action.key == 'n'
+    if $list_of_players[3] == nil
+      next
+    else
+      @currentScreen.rotate_player(:right,3)
+    end
+  end
 end
 
 update do
+  if @currentScreen.check_round_winner()
+    clear 
+    @currentScreen.reset()
+  end
   #startscreen
   @currentScreen.move_players_forward()
   @currentScreen.check_border_collision()
+  @currentScreen.check_player_collision()
+  if @currentScreen.check_winner() 
+    #back to startscreen
+    break
+  end
 end
 show
