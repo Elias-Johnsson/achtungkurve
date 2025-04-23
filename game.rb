@@ -1,27 +1,42 @@
 
 require 'ruby2D'
-set title: "Curv crash"
+set title: "Curve crash"
 
 set width: 1500
 set height: 600
 
-$list_of_players = [1,2,3,4]
+$list_of_players = [1,1,1,1]
 $player_postitons = [[],[],[],[]]
-@player1_score = 0
-@player2_score = 0
-@player3_score = 0
-@player4_score = 0
-$player_scores = [@player1_score, @player2_score, @player3_score, @player4_score]
+$player_scores = [0,0,0,0]
 $color = ['red', 'blue', 'green', 'yellow']
-@first_loop = true
+@game_started = false
+
+
 
 class StartScreen
   def initialize()
+    $first_loop = true
+  end
+  def draw()
     Rectangle.new(x:0,y:0,width: 1500, height: 800, color:'teal', z:1)
-    Rectangle.new(x:200,y:100, width:200, height: 100,color:'white', z:2)
-    Rectangle.new(x:650,y:100, width:200, height: 100,color:'green', z:2)
-    Rectangle.new(x:1100,y:100, width:200, height: 100,color:'black', z:2)
-    Square.new(x:700, y:350, size:100, color:'red', z: 2)
+    Rectangle.new(x:375,y:100, width:200, height: 100,color:'red', z:2)
+    Text.new("Press 1, to select player",x:380,y:135,size:15,color:'black', z:3)
+    Rectangle.new(x:575,y:100, width:200, height: 100,color:'blue', z:2)
+    Text.new("Press 2, to select player",x:580,y:135,size:15,color:'black', z:3)
+    Rectangle.new(x:770,y:100, width:200, height: 100,color:'green', z:2)
+    Text.new("Press 3, to select player",x:775,y:135,size:15,color:'black', z:3)
+    Rectangle.new(x:970,y:100, width:200, height: 100,color:'yellow', z:2)
+    Text.new("Press 4, to select player",x:975,y:135,size:15,color:'black', z:3)
+    Rectangle.new(x:650, y:350,width:200, height:100, color:'black', z: 2)
+    Text.new("Press Space to start game", x:655, y:390, size:15, color:'white', z:3)
+  end
+
+  def start_game()
+    @currentScreen = GameScreen.new()
+    if @currentScreen.check_round_winner()
+      clear
+      @currentScreen.reset() 
+    end
   end
 end
 
@@ -205,8 +220,35 @@ class Player
     @y += @y_speed
   end
 end
+@startscreen = StartScreen.new()
+@currentScreen = nil
 @currentScreen = GameScreen.new()
-#startscreen = StartScreen.new()
+
+on :key_down do |choice|
+  if choice.key == '1'
+    $list_of_players[0] = 1
+    $player_postitons << []
+    $player_scores << 0
+  end
+  if choice.key == '2'
+    $list_of_players[1] = 2
+    $player_postitons << []
+    $player_scores << 0
+  end
+  if choice.key == '3'
+    $list_of_players[2] = 3
+    $player_postitons << []
+    $player_scores << 0
+  end
+  if choice.key == '4'
+    $list_of_players[3] = 4
+    $player_postitons << []
+    $player_scores << 0
+  end
+  if choice.key == 'space'
+    @game_started = true
+  end
+end
 
 on :key_held do |action|
   if action.key == 's'
@@ -264,17 +306,20 @@ on :key_held do |action|
 end
 
 update do
-  if @currentScreen.check_round_winner()
-    clear 
-    @currentScreen.reset()
-  end
-  #startscreen
+  #if !@game_started
+    #@startscreen.draw
+  #else
+    #if $first_loop
+      #clear
+      #$first_loop = false
+    #end
+    #@startscreen.start_game()
+  #end
   @currentScreen.move_players_forward()
   @currentScreen.check_border_collision()
   @currentScreen.check_player_collision()
   if @currentScreen.check_winner() 
-    #back to startscreen
-    break
+    @game_started = false
   end
 end
 show
