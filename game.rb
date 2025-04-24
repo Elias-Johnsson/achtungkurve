@@ -1,13 +1,13 @@
-
 require 'ruby2D'
 set title: "Curve crash"
 
 set width: 1500
 set height: 600
+set fullscreen: true
 
-$list_of_players = [1,1,1,1]
-$player_postitons = [[],[],[],[]]
-$player_scores = [0,0,0,0]
+$list_of_players = []
+$player_postitons = []
+$player_scores = []
 $color = ['red', 'blue', 'green', 'yellow']
 @game_started = false
 
@@ -31,19 +31,12 @@ class StartScreen
     Text.new("Press Space to start game", x:655, y:390, size:15, color:'white', z:3)
   end
 
-  def start_game()
-    @currentScreen = GameScreen.new()
-    if @currentScreen.check_round_winner()
-      clear
-      @currentScreen.reset() 
-    end
-  end
 end
 
 class GameScreen
   def initialize()
     @first_loop = true
-    @game_screen = Rectangle.new(x:10,y:10, width:1300, height:575,color: '#202020' ,z:1)
+    @game_screen = Rectangle.new(x:200,y:10, width:700, height:500,color: '#202020' ,z:1)
     @score_board = Rectangle.new(x:1350, y:10, width:100, height:400, color: 'black', z:1)
     i = 0
     while i < $list_of_players.length
@@ -54,8 +47,9 @@ class GameScreen
   end
   def reset()
     $player_postitons = [[],[],[],[]]
+    $player_scores = []
     @first_loop = true
-    @game_screen = Rectangle.new(x:10,y:10, width:1300, height:575,color: '#202020' ,z:1)
+    @game_screen = Rectangle.new(x:200,y:10, width:700, height:500,color: '#202020' ,z:1)
     @score_board = Rectangle.new(x:1350, y:10, width:100, height:400, color: 'black', z:1)
     i = 0
     while i < $list_of_players.length
@@ -84,7 +78,7 @@ class GameScreen
       i += 1
     end
     if @num_of_alive == 1
-      sleep(1)
+      sleep(0.5)
       $player_scores[@winner_index] += 1
       return true
     end
@@ -129,8 +123,8 @@ end
 
 class Player
   def initialize(index)
-    @x = rand(200..1000)
-    @y = rand(200..400)
+    @x = rand(300..700)
+    @y = rand(70..450)
     @color = $color[index]
     @alive = true
     @x_speed = 1
@@ -221,7 +215,6 @@ class Player
   end
 end
 @startscreen = StartScreen.new()
-@currentScreen = nil
 @currentScreen = GameScreen.new()
 
 on :key_down do |choice|
@@ -306,20 +299,29 @@ on :key_held do |action|
 end
 
 update do
-  #if !@game_started
-    #@startscreen.draw
-  #else
-    #if $first_loop
-      #clear
-      #$first_loop = false
-    #end
-    #@startscreen.start_game()
-  #end
-  @currentScreen.move_players_forward()
-  @currentScreen.check_border_collision()
-  @currentScreen.check_player_collision()
-  if @currentScreen.check_winner() 
-    @game_started = false
+  if @game_started
+    if $first_loop
+      clear
+      $first_loop = false
+      @currentScreen = GameScreen.new()
+    end
+    @currentScreen.move_players_forward()
+    @currentScreen.check_border_collision()
+    @currentScreen.check_player_collision()
+    if @currentScreen.check_round_winner
+      clear
+      @currentScreen = GameScreen.new()
+      @currentScreen.reset()
+    end
+    if @currentScreen.check_winner() 
+      @game_started = false
+      @currentScreen = GameScreen.new()
+      @currentScreen.reset()
+    end
+  else
+    if !@startscreen.draw()
+      @startscreen.draw()
+    end
   end
 end
 show
