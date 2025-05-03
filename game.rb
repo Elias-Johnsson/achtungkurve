@@ -3,9 +3,10 @@ set title: "Curve crash"
 
 set width: 1500
 set height: 600
-set fullscreen: true
+#set fullscreen: true
 
 $list_of_players = []
+$num_of_players = []
 $player_postitons = []
 $player_scores = []
 $color = ['red', 'blue', 'green', 'yellow']
@@ -39,7 +40,7 @@ class GameScreen
     @game_screen = Rectangle.new(x:200,y:10, width:700, height:500,color: '#202020' ,z:1)
     @score_board = Rectangle.new(x:1350, y:10, width:100, height:400, color: 'black', z:1)
     i = 0
-    while i < $list_of_players.length
+    while i < $num_of_players.length
       Text.new($player_scores[i], x:1400, y:(i*30),size:20, color: $color[i], z:2)
       $list_of_players[i] = Player.new(i)
       i += 1
@@ -47,20 +48,26 @@ class GameScreen
   end
   def reset()
     $player_postitons = [[],[],[],[]]
-    $player_scores = []
     @first_loop = true
     @game_screen = Rectangle.new(x:200,y:10, width:700, height:500,color: '#202020' ,z:1)
     @score_board = Rectangle.new(x:1350, y:10, width:100, height:400, color: 'black', z:1)
     i = 0
-    while i < $list_of_players.length
+    while i < $num_of_players.length
       Text.new($player_scores[i], x:1400, y:(i*30),size:20, color: $color[i], z:2)
       $list_of_players[i] = Player.new(i)
       i += 1
     end
   end
+  def tot_reset()
+    $player_postitons = []
+    $player_scores = []
+    $list_of_players = []
+    $num_of_players = []
+    $first_loop = true
+  end
   def check_player_collision()
     i = 0 
-    while i < $list_of_players.length
+    while i < $num_of_players.length
       if $list_of_players[i].player_collision(i) || $list_of_players[i].self_collision(i)
         $list_of_players[i].kill_player()
       end
@@ -100,7 +107,7 @@ class GameScreen
   end
   def check_border_collision()
     i = 0
-    while i < $list_of_players.length
+    while i < $num_of_players.length
       if $list_of_players[i].out_of_bounds?(@game_screen,i) 
         $list_of_players[i].kill_player()
       end
@@ -109,7 +116,7 @@ class GameScreen
   end
   def move_players_forward()
     i = 0
-    while i < $list_of_players.length
+    while i < $num_of_players.length
       if $list_of_players[i].is_alive?()
         $list_of_players[i].direct()
         $list_of_players[i].move_forward()
@@ -136,8 +143,9 @@ class Player
   end
   def draw()
     i = 0
-    while i < $list_of_players.length
-      @squares[i] = Square.new(x:@x, y:@y, size:3,color:@color, z:2)
+    while i < $num_of_players.length
+      #@squares[i] = Square.new(x:@x, y:@y, size:3,color:@color, z:2)
+      @squares[i] = Line.new(x1:@x, y1:@y,x2:@x + @x_speed,y2:@y + @y_speed, width:5,color:@color, z:2)
       i += 1
     end
   end
@@ -147,14 +155,16 @@ class Player
   def is_alive?()
     if @alive
       return true
-    else false
+    else 
+      return false
     end
   end
   def out_of_bounds?(border,player_index)
     return @squares[player_index].x <= border.x || @squares[player_index].x >= (border.x + border.width) || @squares[player_index].y <= border.y || @squares[player_index].y >= (border.y + border.height)
   end
   def g_pos(i)
-    @player_position = [@squares[i].x1, @squares[i].y1, @squares[i].x2, @squares[i].y2, @squares[i].x3, @squares[i].y3,@squares[i].x4, @squares[i].y4]
+    #@player_position = [@squares[i].x1, @squares[i].y1, @squares[i].x2, @squares[i].y2, @squares[i].x3, @squares[i].y3,@squares[i].x4, @squares[i].y4]
+    
     return @player_position
   end
   def rotate(direction)
@@ -219,27 +229,30 @@ end
 
 on :key_down do |choice|
   if choice.key == '1'
-    $list_of_players[0] = 1
-    $player_postitons << []
-    $player_scores << 0
+    $num_of_players[0] = 1
+    $player_postitons[0] = []
+    $player_scores[0] = 0
   end
   if choice.key == '2'
-    $list_of_players[1] = 2
-    $player_postitons << []
-    $player_scores << 0
+    $num_of_players[1] = 1
+    $player_postitons[1] = []
+    $player_scores[1] = 0
   end
   if choice.key == '3'
-    $list_of_players[2] = 3
-    $player_postitons << []
-    $player_scores << 0
+    $num_of_players[2] = 1
+    $player_postitons[2] = []
+    $player_scores[2] = 0
   end
   if choice.key == '4'
-    $list_of_players[3] = 4
-    $player_postitons << []
-    $player_scores << 0
+    $num_of_players[3] = 1
+    $player_postitons[3] = []
+    $player_scores[3] = 0
   end
   if choice.key == 'space'
-    @game_started = true
+    if $num_of_players != []
+      @game_started = true
+      @first_loop = true
+    end
   end
 end
 
@@ -312,12 +325,14 @@ update do
       clear
       @currentScreen = GameScreen.new()
       @currentScreen.reset()
-    end
-    if @currentScreen.check_winner() 
-      @game_started = false
-      @currentScreen = GameScreen.new()
-      @currentScreen.reset()
-    end
+      if @currentScreen.check_winner() 
+        clear
+        @game_started = false
+        p "benis"
+        $player_scores = []
+        @currentScreen.tot_reset()
+      end
+    end 
   else
     if !@startscreen.draw()
       @startscreen.draw()
