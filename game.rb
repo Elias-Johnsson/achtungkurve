@@ -144,8 +144,8 @@ class Player
   def draw()
     i = 0
     while i < $num_of_players.length
-      #@squares[i] = Square.new(x:@x, y:@y, size:3,color:@color, z:2)
-      @squares[i] = Line.new(x1:@x, y1:@y,x2:@x + @x_speed,y2:@y + @y_speed, width:5,color:@color, z:2)
+      @squares[i] = Square.new(x:@x, y:@y, size:3,color:@color, z:2)
+      #@squares[i] = Line.new(x1:@x, y1:@y,x2:@x + @x_speed,y2:@y + @y_speed, width:5,color:@color, z:2)
       i += 1
     end
   end
@@ -163,8 +163,7 @@ class Player
     return @squares[player_index].x <= border.x || @squares[player_index].x >= (border.x + border.width) || @squares[player_index].y <= border.y || @squares[player_index].y >= (border.y + border.height)
   end
   def g_pos(i)
-    #@player_position = [@squares[i].x1, @squares[i].y1, @squares[i].x2, @squares[i].y2, @squares[i].x3, @squares[i].y3,@squares[i].x4, @squares[i].y4]
-    
+    @player_position = [@squares[i].x1, @squares[i].y1, @squares[i].x2, @squares[i].y2, @squares[i].x3, @squares[i].y3,@squares[i].x4, @squares[i].y4]
     return @player_position
   end
   def rotate(direction)
