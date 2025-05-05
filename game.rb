@@ -3,7 +3,7 @@ set title: "Curve crash"
 
 set width: 1500
 set height: 600
-#set fullscreen: true
+set fullscreen: true
 
 $list_of_players = []
 $num_of_players = []
@@ -11,6 +11,7 @@ $player_postitons = []
 $player_scores = []
 $color = ['red', 'blue', 'green', 'yellow']
 @game_started = false
+$list_of_speed = []
 
 
 
@@ -54,6 +55,7 @@ class GameScreen
     i = 0
     while i < $num_of_players.length
       Text.new($player_scores[i], x:1400, y:(i*30),size:20, color: $color[i], z:2)
+      $list_of_speed[i] = 1
       $list_of_players[i] = Player.new(i)
       i += 1
     end
@@ -119,7 +121,7 @@ class GameScreen
     while i < $num_of_players.length
       if $list_of_players[i].is_alive?()
         $list_of_players[i].direct()
-        $list_of_players[i].move_forward()
+        $list_of_players[i].move_forward(i)
         $list_of_players[i].draw()
         $player_postitons[i] << ($list_of_players[i].g_pos(i))
       end
@@ -218,9 +220,9 @@ class Player
     @x_speed = Math.sin(@rotate * Math::PI/ 180)
     @y_speed = Math.cos(@rotate *  Math::PI/ 180)
   end
-  def move_forward()
-    @x += @x_speed
-    @y += @y_speed
+  def move_forward(i)
+    @x += @x_speed * $list_of_speed[i]
+    @y += @y_speed * $list_of_speed[i]
   end
 end
 @startscreen = StartScreen.new()
@@ -231,21 +233,25 @@ on :key_down do |choice|
     $num_of_players[0] = 1
     $player_postitons[0] = []
     $player_scores[0] = 0
+    $list_of_speed[0] = 1
   end
   if choice.key == '2'
     $num_of_players[1] = 1
     $player_postitons[1] = []
     $player_scores[1] = 0
+    $list_of_speed[1] = 1
   end
   if choice.key == '3'
     $num_of_players[2] = 1
     $player_postitons[2] = []
     $player_scores[2] = 0
+    $list_of_speed[2] = 1
   end
   if choice.key == '4'
     $num_of_players[3] = 1
     $player_postitons[3] = []
     $player_scores[3] = 0
+    $list_of_speed[3] = 1
   end
   if choice.key == 'space'
     if $num_of_players != []
@@ -254,7 +260,28 @@ on :key_down do |choice|
     end
   end
 end
-
+on :key_held do |move|
+  if move.key == 'd'
+    $list_of_speed[0] = 2
+  else 
+    $list_of_speed[0] = 1
+  end
+  if move.key == 'j'
+    $list_of_speed[1] = 2
+  else 
+    $list_of_speed[1] = 1
+  end
+  if move.key == 'ö'
+    $list_of_speed[2] = 2
+  else 
+    $list_of_speed[2] = 1
+  end
+  if move.key == ','
+    $list_of_speed[3] = 2
+  else 
+    $list_of_speed[3] = 1
+  end
+end
 on :key_held do |action|
   if action.key == 's'
     if $list_of_players[0] == nil
@@ -326,8 +353,7 @@ update do
       @currentScreen.reset()
       if @currentScreen.check_winner() 
         clear
-        @game_started = false
-        p "benis"
+        @game_started = false  
         $player_scores = []
         @currentScreen.tot_reset()
       end
