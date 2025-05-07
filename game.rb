@@ -5,20 +5,27 @@ set width: 1500
 set height: 600
 set fullscreen: true
 
-$list_of_players = []
-$num_of_players = []
-$player_postitons = []
-$player_scores = []
-$color = ['red', 'blue', 'green', 'yellow']
-@game_started = false
-$list_of_speed = []
+$list_of_players = [] # Global array to store player objects
+$num_of_players = [] #Global array to store number of players
+$player_postitons = [] #Global array to store all positions of every player object
+$player_scores = [] #Global array to store scores for every player
+$color = ['red', 'blue', 'green', 'yellow'] #Global array for the different colors of the players
+@game_started = false #Bool variabel that tracks whethet the game is active
+$list_of_speed = [] #Global list of player speeds
 
-
-
+#
+  #Class that declares the starting screen and instructions for the game. Inizial function of the Startscreen class that clarifies what loop the program is on 
+  # Parameters: Void
+  # Returns: void
 class StartScreen
   def initialize()
     $first_loop = true
   end
+  #
+  #Draws startscreen interface
+  # Parameters:
+  # Void
+  # Returns: Void
   def draw()
     Rectangle.new(x:0,y:0,width: 1500, height: 800, color:'teal', z:1)
     Rectangle.new(x:375,y:100, width:200, height: 100,color:'red', z:2)
@@ -34,7 +41,10 @@ class StartScreen
   end
 
 end
-
+#
+  #Class that declares the entire current game screen. The initizial function of Gamescreen that declares all player objects and creates the game board
+  # Parameters: Void
+  # Returns: void
 class GameScreen
   def initialize()
     @first_loop = true
@@ -47,6 +57,11 @@ class GameScreen
       i += 1
     end
   end
+  #
+  #Reset function that resets all values and declares all player objects after every round of the game
+  # Parameters:
+    # Void
+  # Returns: Void
   def reset()
     $player_postitons = [[],[],[],[]]
     @first_loop = true
@@ -60,6 +75,11 @@ class GameScreen
       i += 1
     end
   end
+  #
+  #Total reset function that resets every varaibel and array before the game starts over
+  # Parameters:
+    #Void
+  # Returns: Void
   def tot_reset()
     $player_postitons = []
     $player_scores = []
@@ -67,6 +87,11 @@ class GameScreen
     $num_of_players = []
     $first_loop = true
   end
+  #
+  #Checks if a player object has collided with another object or itself, and if true removes that object from the game
+  # Parameters:
+    # Void
+  # Returns: Void
   def check_player_collision()
     i = 0 
     while i < $num_of_players.length
@@ -76,6 +101,11 @@ class GameScreen
       i += 1
     end
   end
+  #
+  #Function that checks for any winners every round of the game
+  # Parameters:
+    # Void
+  # Returns: True/False
   def check_round_winner()
     i = 0
     @num_of_alive = 0
@@ -93,6 +123,11 @@ class GameScreen
     end
     return false
   end
+  #
+  #Checks if a player has won the entire game and returns true or false
+  # Parameters:
+    # Void
+  # Returns: True/false
   def check_winner()
     i = 0
     while i < $player_scores.length
@@ -104,6 +139,12 @@ class GameScreen
     end
     return false
   end
+  #
+  #Rotates a certain player object in a certain direction
+  # Parameters:
+    # direction: :right/:left
+    # player_index: index of the player object that is being rotated
+  # Returns: Void
   def rotate_player(direction,player_index)
     $list_of_players[player_index].rotate(direction)
   end
@@ -116,6 +157,11 @@ class GameScreen
       i += 1
     end
   end
+  #
+  #Function that rotates, moves, draws and checks if a player object is still alive. Function also adds every position of every playuer object to av array
+  # Parameters:
+    # Void
+  # Returns: Void
   def move_players_forward()
     i = 0
     while i < $num_of_players.length
@@ -130,6 +176,11 @@ class GameScreen
   end
 end
 
+#
+  #Class that declares the player object and all its attributes. The inizial funktion of the class player that defines position,color,speed,rotation and if its currently alive
+  # Parameters: Void
+  # Returns: void
+
 class Player
   def initialize(index)
     @x = rand(300..700)
@@ -141,19 +192,32 @@ class Player
     @squares = []
     @player_position = []
     @rotate = rand(0..360)
-  
   end
+  #
+  #Draw function that creates sqaures for every active player object
+  # Parameters:
+    # Void
+  # Returns: Void
   def draw()
     i = 0
     while i < $num_of_players.length
       @squares[i] = Square.new(x:@x, y:@y, size:3,color:@color, z:2)
-      #@squares[i] = Line.new(x1:@x, y1:@y,x2:@x + @x_speed,y2:@y + @y_speed, width:5,color:@color, z:2)
       i += 1
     end
   end
+  #
+  #Removes player object from active position
+  # Parameters:
+    # Void
+  # Returns: Void
   def kill_player()
     @alive = false
   end
+  #
+  #Checks if a player object is active or not
+  # Parameters:
+    # Void
+  # Returns: True/False
   def is_alive?()
     if @alive
       return true
@@ -161,13 +225,29 @@ class Player
       return false
     end
   end
+  #
+  #Checks if a player object is currently outside of the established border by checking x and y coordinates
+  # Parameters:
+    # border: Rectangel that functions as a border for all players
+    #player index: index for a specific player object
+  # Returns: True/False
   def out_of_bounds?(border,player_index)
     return @squares[player_index].x <= border.x || @squares[player_index].x >= (border.x + border.width) || @squares[player_index].y <= border.y || @squares[player_index].y >= (border.y + border.height)
   end
+  #
+  #Gets the current postition of every corner of the current player object
+  # Parameters:
+    # i: index for specific player
+  # Returns: Current coordinates of the player objects corners
   def g_pos(i)
     @player_position = [@squares[i].x1, @squares[i].y1, @squares[i].x2, @squares[i].y2, @squares[i].x3, @squares[i].y3,@squares[i].x4, @squares[i].y4]
     return @player_position
   end
+  #
+  #Changes the rotation value of the player object in a specific direction
+  # Parameters:
+    # Direction: The direction the player rotates in
+  # Returns: Void
   def rotate(direction)
     case direction
     when :left
@@ -176,6 +256,11 @@ class Player
       @rotate += 3
     end
   end
+  #
+  #Checks if a player objects is currently overlapping with any other players corners and therefore colliding
+  # Parameters:
+    # i : index for a specifik player object
+  # Returns: True/False
   def player_collision(i)
     j = 0
     while j < $player_postitons.length
@@ -199,6 +284,11 @@ class Player
       j += 1
     end
   end
+  #
+  #Checks if a player object is currently overlapping with the corners of a previous position square
+  # Parameters:
+    # i: index for a specific player object
+  # Returns: True/False
   def self_collision(i)
     j = 0
     while j < $player_postitons[i].length - 5
@@ -216,10 +306,20 @@ class Player
     end
     return false
   end
+  #
+  #Calculates the specific relation between x and y speed to achieve a specifik rotation by using geometry
+  # Parameters:
+    # Void
+  # Returns: Void
   def direct() 
     @x_speed = Math.sin(@rotate * Math::PI/ 180)
     @y_speed = Math.cos(@rotate *  Math::PI/ 180)
   end
+  #
+  #Moves a plyer object forward with a predetermined speed
+  # Parameters:
+    # i: The specific index of a player object
+  # Returns: Void
   def move_forward(i)
     @x += @x_speed * $list_of_speed[i]
     @y += @y_speed * $list_of_speed[i]
@@ -227,7 +327,11 @@ class Player
 end
 @startscreen = StartScreen.new()
 @currentScreen = GameScreen.new()
-
+#
+# Checks for key commands that indicates that a player should be added
+# Parameters:
+  # Choice: the currently pressed key
+# Returns: Void
 on :key_down do |choice|
   if choice.key == '1'
     $num_of_players[0] = 1
@@ -260,6 +364,11 @@ on :key_down do |choice|
     end
   end
 end
+ #
+#Checks if a the speed upp ability is used in a game
+# Parameters:
+  # move: The currently pressed key
+# Returns: Void
 on :key_held do |move|
   if move.key == 'd'
     $list_of_speed[0] = 2
@@ -282,6 +391,11 @@ on :key_held do |move|
     $list_of_speed[3] = 1
   end
 end
+ #
+#Rotates a specific player object in a direction depending on the key that is pressed
+# Parameters:
+  # Action: the currently pressed key
+# Returns: Void
 on :key_held do |action|
   if action.key == 's'
     if $list_of_players[0] == nil
