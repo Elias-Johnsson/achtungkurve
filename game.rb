@@ -5,6 +5,11 @@ set width: 1500
 set height: 600
 set fullscreen: true
 
+# File: game.rb
+# Author: Elias Johnsson
+# Date: 2025-05-08
+# Description: Cruve crash in ruby2d 
+
 $list_of_players = [] # Global array to store player objects
 $num_of_players = [] #Global array to store number of players
 $player_postitons = [] #Global array to store all positions of every player object
@@ -14,9 +19,9 @@ $color = ['red', 'blue', 'green', 'yellow'] #Global array for the different colo
 $list_of_speed = [] #Global list of player speeds
 
 #
-  #Class that declares the starting screen and instructions for the game. Inizial function of the Startscreen class that clarifies what loop the program is on 
-  # Parameters: Void
-  # Returns: void
+#Class that declares the starting screen and instructions for the game. Inizial function of the Startscreen class that clarifies what loop the program is on 
+# Parameters: Void
+# Returns: void
 class StartScreen
   def initialize()
     $first_loop = true
@@ -38,6 +43,12 @@ class StartScreen
     Text.new("Press 4, to select player",x:975,y:135,size:15,color:'black', z:3)
     Rectangle.new(x:650, y:350,width:200, height:100, color:'black', z: 2)
     Text.new("Press Space to start game", x:655, y:390, size:15, color:'white', z:3)
+    Rectangle.new(x:0,y:200,width:350,height:400, color:'white', z:2)
+    Text.new("Keybindes", x:1,y:200, size:10, color:'black', z:3)
+    Text.new("Player1: Turn right = S, Turn left = A, Speed up: D", x:1,y:300, size:12, color:'black', z:3)
+    Text.new("Player2: Turn right = H, Turn left = G, Speed up: J", x:1,y:350, size:12, color:'black', z:3)
+    Text.new("Player3: Turn right = K, Turn left = L, Speed up: Ö", x:1,y:400, size:12, color:'black', z:3)
+    Text.new("Player4: Turn right = M, Turn left = N, Speed up: ,", x:1,y:450, size:12, color:'black', z:3)
   end
 
 end
@@ -116,7 +127,7 @@ class GameScreen
       end
       i += 1
     end
-    if @num_of_alive == 1
+    if @num_of_alive == 1 || @num_of_alive == 0
       sleep(0.5)
       $player_scores[@winner_index] += 1
       return true
@@ -226,9 +237,9 @@ class Player
     end
   end
   #
-  #Checks if a player object is currently outside of the established border by checking x and y coordinates
+  #Checks if a player object is currently outside of the established border by checking x and y coordinates of the border
   # Parameters:
-    # border: Rectangel that functions as a border for all players
+    #border: Rectangel that functions as a border for all players
     #player index: index for a specific player object
   # Returns: True/False
   def out_of_bounds?(border,player_index)
